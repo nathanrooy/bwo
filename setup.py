@@ -1,4 +1,4 @@
- from setuptools import setup
+from setuptools import setup
 import bwo
 
 with open("README.md", "r") as fh:
