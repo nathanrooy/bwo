@@ -3,7 +3,6 @@ from random import choice
 from random import random
 from random import randint
 from copy import deepcopy
-from landscapes.single_objective import sphere
 
 
 def generate_initial_position(nvar=None, x0=None, bounds=None):
@@ -107,8 +106,4 @@ def minimize(func, x0, bounds=None, npop=10, maxiter=50):
         pop2.extend(pop3)
         pop = deepcopy(pop2)
 
-    return
-
-
-x0 = [0,0,0,0,0]
-minimize(sphere, x0)
+    return hist
