@@ -1,13 +1,12 @@
 from setuptools import setup
-import bwo
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
     name='bwo',
-    version=bwo.__version__,
-    author=bwo.__author__,
+    version='0.1.0',
+    author='Nathan A. Rooy',
     author_email='nathanrooy@gmail.com',
     url='https://github.com/nathanrooy/bwo',
     description='Black Widow Optimization',
