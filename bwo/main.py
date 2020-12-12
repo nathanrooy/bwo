@@ -4,6 +4,9 @@ from random import random
 from random import randint
 from copy import deepcopy
 
+import sys
+sys.tracebacklimit = 0
+
 
 def _generate_new_position(x0: list = None, dof: int = None, bounds: list = None) -> list:
     '''GENERATE NEW POSITION
@@ -98,13 +101,16 @@ def minimize(func, x0=None, dof=None, bounds=None, pp=0.6, cr=0.44, pm=0.4,
     # do some basic checks before going any further
     assert type(disp) == bool, 'parameter: disp -> must be of type: bool'
     assert type(npop) == int, 'parameter: npop -> must be of type: int'
-    assert x0 is not None or dof is not None or bounds is not None, 'must specify at least one of the following: x0, dof, or bounds'
+    assert type(maxiter) == int, 'parameter: maxiter -> must be of type int'
+    if x0 is not None: assert type(x0) == list, 'x0 must be of type: list'
     if dof is not None: assert type(dof) == int, 'parameter: dof -> must be of type: int'
+    if bounds is not None: assert type(bounds) == list, 'parameter: bounds -> must be of type list'
+    assert x0 is not None or dof is not None or bounds is not None, 'must specify at least one of the following: x0, dof, or bounds'
     if x0 and bounds: assert len(bounds) == len(x0), 'x0 and bounds must have same number of elements'
-    
     assert pp > 0 and pp <= 1, 'procreating percentage "pp" must be: 0 < pp <= 1'
     assert cr >= 0 and cr <= 1, 'cannibalism rate "cr" must be: 0 < cr <= 1'
     assert pm >= 0 and pm <= 1, 'mutation rate "pm" must be: 0 < pm <= 1'
+    assert maxiter > 0, 'maxiter must be greater than zero.'
 
     # check bounds specification if necessary
     if bounds:
@@ -167,7 +173,7 @@ def minimize(func, x0=None, dof=None, bounds=None, pp=0.6, cr=0.44, pm=0.4,
 
             # cannibalism - destroy some children
             children = sorted(children, key=lambda x: func(x), reverse=False)
-            assert int(len(children) * cr) >= 1, f'given the dof size of: {dof}, the cannibalism rate "cr" is too low. increase this value and re-run.'
+            assert int(len(children) * cr) >= 1, f'given the dimensionality of the current function: {dof}, the cannibalism rate "cr" is too low. increase this value and re-run.'
             children = children[:int(len(children) * cr)]
 
             # add surviving children to pop2
