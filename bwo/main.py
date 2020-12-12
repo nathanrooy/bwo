@@ -136,7 +136,7 @@ def minimize(func, x0=None, dof=None, bounds=None, pp=0.6, cr=0.44, pm=0.4,
         gbest = pop[0]
         
         # print something useful
-        #if disp: print(f'> ITER: {epoch:>{spacer}} | GBEST: {func(gbest):0.6f}')
+        if disp: print(f'> ITER: {epoch:>{spacer}} | GBEST: {func(gbest):0.6f}')
 
         # procreation and cannibalism
         for i in range(0, nr):
