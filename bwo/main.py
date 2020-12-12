@@ -72,18 +72,23 @@ def _generate_new_position(x0: list = None, dof: int = None, bounds: list = None
         return [uniform(-1, 1) for _ in range(0, dof)]
 
 
-def minimize(func, x0=None, dof=None, bounds=None, pp=0.8, cr=0.5, pm=0.4, npop=10, disp=False, maxiter=50):
+def minimize(func, x0=None, dof=None, bounds=None, pp=0.6, cr=0.44, pm=0.4,
+             npop=10, disp=False, maxiter=50):
     '''
     Parameters
     ----------
 
     Returns
     -------
+    float : solution at global best
+    list : position at global best
 
     Notes
     -----
     pp : procreating percentage
     cr : cannibalism rate
+        A cr of 1 results in all children surviving
+        A cr of 0 results in no children surviving
     pm : mutation rate
 
     References
@@ -93,9 +98,13 @@ def minimize(func, x0=None, dof=None, bounds=None, pp=0.8, cr=0.5, pm=0.4, npop=
     # do some basic checks before going any further
     assert type(disp) == bool, 'parameter: disp -> must be of type: bool'
     assert type(npop) == int, 'parameter: npop -> must be of type: int'
-    assert x0 is not None or dof is not None, 'must specify either x0 (initial guess -> list) or dof (degrees of freedom)'
-    if dof != None: assert type(dof) == int, 'parameter: dof -> must be of type: int'
+    assert x0 is not None or dof is not None or bounds is not None, 'must specify at least one of the following: x0, dof, or bounds'
+    if dof is not None: assert type(dof) == int, 'parameter: dof -> must be of type: int'
     if x0 and bounds: assert len(bounds) == len(x0), 'x0 and bounds must have same number of elements'
+    
+    assert pp > 0 and pp <= 1, 'procreating percentage "pp" must be: 0 < pp <= 1'
+    assert cr >= 0 and cr <= 1, 'cannibalism rate "cr" must be: 0 < cr <= 1'
+    assert pm >= 0 and pm <= 1, 'mutation rate "pm" must be: 0 < pm <= 1'
 
     # check bounds specification if necessary
     if bounds:
@@ -105,7 +114,9 @@ def minimize(func, x0=None, dof=None, bounds=None, pp=0.8, cr=0.5, pm=0.4, npop=
             assert b[0] < b[1], 'element in bounds specified incorrectly. must be (xi_min, xi_max)'
 
     # constants
-    if dof == None: dof = len(x0)
+    if x0 is not None: dof = len(x0)
+    elif bounds is not None: dof = len(bounds)
+
     nr = int(npop * pp)         # number of reproduction
     nm = int(npop * pm)         # number of mutation children
     spacer = len(str(npop))     # for logging only
@@ -123,7 +134,6 @@ def minimize(func, x0=None, dof=None, bounds=None, pp=0.8, cr=0.5, pm=0.4, npop=
         pop2 = []
         pop3 = []
         gbest = pop[0]
-        hist.append(gbest)
         
         # print something useful
         if disp: print(f'> ITER: {epoch:>{spacer}} | GBEST: {func(gbest):0.6f}')
@@ -148,14 +158,16 @@ def minimize(func, x0=None, dof=None, bounds=None, pp=0.8, cr=0.5, pm=0.4, npop=
                 children.append(c1)
                 children.append(c2)
 
-            # cannibalism - destroy male; since female black widow spiders are larger
-            # and often end up killing the male during mating, we'll assume that the
-            # fitter partent is the female. thus, we'll delete the weaker parent.
+            # cannibalism - destroy male; since female black widow spiders are 
+            # larger and often end up killing the male during mating, we'll
+            # assume that the fitter partent is the female. thus, we'll delete 
+            # the weaker parent.
             if func(p1) > func(p2): pop1.pop(i1)
             else: pop1.pop(i2)
 
             # cannibalism - destroy some children
             children = sorted(children, key=lambda x: func(x), reverse=False)
+            assert int(len(children) * cr) >= 1, f'given the dof size of: {dof}, the cannibalism rate "cr" is too low. increase this value and re-run.'
             children = children[:int(len(children) * cr)]
 
             # add surviving children to pop2
@@ -181,4 +193,4 @@ def minimize(func, x0=None, dof=None, bounds=None, pp=0.8, cr=0.5, pm=0.4, npop=
         pop = deepcopy(pop2)
 
     # return global best position and func value at global best position
-    return hist
+    return func(gbest), gbest
