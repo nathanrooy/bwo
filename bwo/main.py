@@ -173,8 +173,7 @@ def minimize(func, x0=None, dof=None, bounds=None, pp=0.6, cr=0.44, pm=0.4,
 
             # cannibalism - destroy some children
             children = sorted(children, key=lambda x: func(x), reverse=False)
-            assert int(len(children) * cr) >= 1, f'given the dimensionality of the current function: {dof}, the cannibalism rate "cr" is too low. increase this value and re-run.'
-            children = children[:int(len(children) * cr)]
+            children = children[:max(int(len(children) * cr), 1)]
 
             # add surviving children to pop2
             pop2.extend(children)
