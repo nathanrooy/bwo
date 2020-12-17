@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='bwo',
-    version='0.1.1',
+    version='0.1.2',
     author='Nathan A. Rooy',
     author_email='nathanrooy@gmail.com',
     url='https://github.com/nathanrooy/bwo',
