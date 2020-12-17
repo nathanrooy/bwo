@@ -37,7 +37,7 @@ Where `fbest` is the best function value achieved during optimization, and `xbes
 You can also minimize a function given boundry constraints, represented by a list of tuples. Each tuple must follow the (min, max) format.
 ```
 bounds = [(-1,1),(-2,2), (-3,3), (-4,4), (-5,5)]
-fbest, xbest = minimize(sphere, bounds=bounds, disp=False)
+fbest, xbest = minimize(sphere, bounds=bounds)
 ```
 
 ### Options
