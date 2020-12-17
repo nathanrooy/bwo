@@ -80,19 +80,20 @@ def minimize(func, x0=None, dof=None, bounds=None, pp=0.6, cr=0.44, pm=0.4,
     '''
     Parameters
     ----------
+    x0 : list
+    	initial guess
+    pp : float
+    	procreating percentage
+    cr : float
+    	cannibalism rate. A cr of 1 results in all children surviving. A cr of 0
+        results in no children surviving
+    pm : float
+        mutation rate
 
     Returns
     -------
     float : solution at global best
     list : position at global best
-
-    Notes
-    -----
-    pp : procreating percentage
-    cr : cannibalism rate
-        A cr of 1 results in all children surviving
-        A cr of 0 results in no children surviving
-    pm : mutation rate
 
     References
     ----------
@@ -142,7 +143,7 @@ def minimize(func, x0=None, dof=None, bounds=None, pp=0.6, cr=0.44, pm=0.4,
         gbest = pop[0]
         
         # print something useful
-        if disp: print(f'> ITER: {epoch:>{spacer}} | GBEST: {func(gbest):0.6f}')
+        if disp: print(f'> ITER: {epoch+1:>{spacer}} | GBEST: {func(gbest):0.6f}')
 
         # procreation and cannibalism
         for i in range(0, nr):
