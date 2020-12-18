@@ -35,6 +35,7 @@ jobs:
       run: |
         pip install coverage
         coverage run -m unittest tests/unit.py 
+        bash <(curl -s https://codecov.io/bash)
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
