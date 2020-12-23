@@ -19,7 +19,7 @@ pip install git+https://github.com/nathanrooy/bwo
 ```
 
 ### Usage
-As a simple example, let's find the minimum of the single objective <a target="_blank" href="https://github.com/nathanrooy/landscapes#sphere-function">sphere</a> function availabel in the <a target="_blank" href="https://github.com/nathanrooy/landscapes">Landscapes</a> Python package.
+As a simple example, let's find the minimum of the single objective <a target="_blank" href="https://github.com/nathanrooy/landscapes#sphere-function">sphere</a> function available in the <a target="_blank" href="https://github.com/nathanrooy/landscapes">Landscapes</a> Python package.
 
 ```
 pip install landscapes
@@ -35,7 +35,7 @@ fbest, xbest = minimize(sphere, dof=5)
 ```
 Where `fbest` is the best function value achieved during optimization, and `xbest` is the function input which yielded `fbest`.
 
-You can also minimize a function given boundry constraints, represented by a list of tuples. Each tuple must follow the (min, max) format.
+You can also minimize a function given boundary constraints, represented by a list of tuples. Each tuple must follow the (min, max) format.
 ```
 bounds = [(-1,1),(-2,2), (-3,3), (-4,4), (-5,5)]
 fbest, xbest = minimize(sphere, bounds=bounds)
