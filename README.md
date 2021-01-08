@@ -7,7 +7,7 @@
 [![codecov](https://img.shields.io/codecov/c/github/nathanrooy/bwo.svg?style=flat-square)](https://codecov.io/gh/nathanrooy/bwo)
 
 <b>From the abstract</b>:</br>
-```...a novel meta-heuristic algorithm suitable for continuous nonlinear optimization problems. The proposed method, Black Widow Optimization Algorithm (BWO), is inspired by the unique mating behavior of black widow spiders. This method includes an exclusive stage, namely, cannibalism. Due to this stage, species with inappropriate fitness are omitted from the circle, thus leading to early convergence. BWO algorithm is evaluated on 51 various benchmark functions to verify its efficiency in obtaining the optimal solutions for the problems. The obtained results indicate that the proposed algorithm has numerous advantages in different aspects such as early convergence and achieving optimized fitness value compared to other algorithms.```
+> ...a novel meta-heuristic algorithm suitable for continuous nonlinear optimization problems. The proposed method, Black Widow Optimization Algorithm (BWO), is inspired by the unique mating behavior of black widow spiders. This method includes an exclusive stage, namely, cannibalism. Due to this stage, species with inappropriate fitness are omitted from the circle, thus leading to early convergence. BWO algorithm is evaluated on 51 various benchmark functions to verify its efficiency in obtaining the optimal solutions for the problems. The obtained results indicate that the proposed algorithm has numerous advantages in different aspects such as early convergence and achieving optimized fitness value compared to other algorithms.
 
 ### Installation
 ```
