@@ -25,20 +25,48 @@ As a simple example, let's find the minimum of the single objective <a target="_
 pip install landscapes
 ```
 Next, let's import everything we need.
-```
-from bwo import minimize
-from landscapes.single_objective import sphere
+```python
+>>> from bwo import minimize
+>>> from landscapes.single_objective import sphere
 ```
 Now, we just need to call the minimize function. For this particular example, let's optimize across 5 degrees of freedom.
-```
-fbest, xbest = minimize(sphere, dof=5)
+```python
+>>> fbest, xbest = minimize(sphere, dof=5)
 ```
 Where `fbest` is the best function value achieved during optimization, and `xbest` is the function input which yielded `fbest`.
 
 You can also minimize a function given boundary constraints, represented by a list of tuples. Each tuple must follow the (min, max) format.
+```python
+>>> bounds = [(-1,1),(-2,2), (-3,3), (-4,4), (-5,5)]
+>>> fbest, xbest = minimize(sphere, bounds=bounds)
 ```
-bounds = [(-1,1),(-2,2), (-3,3), (-4,4), (-5,5)]
-fbest, xbest = minimize(sphere, bounds=bounds)
+
+To display the convergence, simply set the `disp` flag to `true` as such:
+```python
+>>> fbest, xbest = minimize(sphere, dof=5, maxiter=20, disp=True)
+```
+Which should yield something like the following:
+```python
+> ITER:  1 | GBEST: 0.561091
+> ITER:  2 | GBEST: 0.358288
+> ITER:  3 | GBEST: 0.103173
+> ITER:  4 | GBEST: 0.008892
+> ITER:  5 | GBEST: 0.008892
+> ITER:  6 | GBEST: 0.008887
+> ITER:  7 | GBEST: 0.005540
+> ITER:  8 | GBEST: 0.005540
+> ITER:  9 | GBEST: 0.001907
+> ITER: 10 | GBEST: 0.001221
+> ITER: 11 | GBEST: 0.001147
+> ITER: 12 | GBEST: 0.001056
+> ITER: 13 | GBEST: 0.000874
+> ITER: 14 | GBEST: 0.000874
+> ITER: 15 | GBEST: 0.000760
+> ITER: 16 | GBEST: 0.000760
+> ITER: 17 | GBEST: 0.000731
+> ITER: 18 | GBEST: 0.000731
+> ITER: 19 | GBEST: 0.000719
+> ITER: 20 | GBEST: 0.000719
 ```
 
 ### Options
