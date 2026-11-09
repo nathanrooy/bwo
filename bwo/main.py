@@ -115,44 +115,55 @@ def minimize(
     ----------
     """
     # do some basic checks before going any further
-    assert isinstance(disp, bool), "parameter: disp -> must be of type: bool"
-    assert isinstance(npop, int), "parameter: npop -> must be of type: int"
-    assert isinstance(maxiter, int), "parameter: maxiter -> must be of type int"
-    if x0 is not None:
-        assert isinstance(x0, list), "x0 must be of type: list"
-    if dof is not None:
-        assert isinstance(dof, int), "parameter: dof -> must be of type: int"
-    if bounds is not None:
-        assert isinstance(bounds, list), "parameter: bounds -> must be of type list"
-    assert x0 is not None or dof is not None or bounds is not None, (
-        "must specify at least one of the following: x0, dof, or bounds"
-    )
-    if x0 and bounds:
-        assert len(bounds) == len(x0), "x0 and bounds must have same number of elements"
-    assert 0 < pp <= 1, 'procreating percentage "pp" must be: 0 < pp <= 1'
-    assert 0 <= cr <= 1, 'cannibalism rate "cr" must be: 0 < cr <= 1'
-    assert 0 <= pm <= 1, 'mutation rate "pm" must be: 0 < pm <= 1'
-    assert maxiter > 0, "maxiter must be greater than zero."
+    if not isinstance(disp, bool):
+        raise TypeError("parameter: disp -> must be of type: bool")
+    if not isinstance(npop, int) or isinstance(npop, bool):
+        raise TypeError("parameter: npop -> must be of type: int")
+    if npop < 2:
+        raise ValueError("npop must be at least 2.")
+    if not isinstance(maxiter, int) or isinstance(maxiter, bool):
+        raise TypeError("parameter: maxiter -> must be of type int")
+    if maxiter <= 0:
+        raise ValueError("maxiter must be greater than zero.")
+    if x0 is not None and not isinstance(x0, list):
+        raise TypeError("x0 must be of type: list")
+    if dof is not None and (not isinstance(dof, int) or isinstance(dof, bool)):
+        raise TypeError("parameter: dof -> must be of type: int")
+    if bounds is not None and not isinstance(bounds, list):
+        raise TypeError("parameter: bounds -> must be of type list")
+    if x0 is None and dof is None and bounds is None:
+        raise ValueError(
+            "must specify at least one of the following: x0, dof, or bounds"
+        )
+    if x0 and bounds and len(bounds) != len(x0):
+        raise ValueError("x0 and bounds must have same number of elements")
+    if not (0 < pp <= 1):
+        raise ValueError('procreating percentage "pp" must be: 0 < pp <= 1')
+    if not (0 <= cr <= 1):
+        raise ValueError('cannibalism rate "cr" must be: 0 <= cr <= 1')
+    if not (0 <= pm <= 1):
+        raise ValueError('mutation rate "pm" must be: 0 <= pm <= 1')
 
     # check bounds specification if necessary
     if bounds:
-        assert isinstance(bounds, list), "bounds must be of type: list"
         for b in bounds:
-            assert isinstance(b, tuple), (
-                "element in bounds is not of type: tuple. "
-                "every element must be a tuple as specified (v_min, v_max)"
-            )
-            assert b[0] < b[1], (
-                "element in bounds specified incorrectly. must be (xi_min, xi_max)"
-            )
+            if not isinstance(b, tuple) or len(b) != 2:
+                raise TypeError(
+                    "element in bounds is not of type: tuple. "
+                    "every element must be a tuple as specified (v_min, v_max)"
+                )
+            if b[0] >= b[1]:
+                raise ValueError(
+                    "element in bounds specified incorrectly. must be (xi_min, xi_max)"
+                )
 
     # constants
     if x0 is not None:
         dof = len(x0)
     elif bounds is not None:
         dof = len(bounds)
-    assert dof is not None
-    assert dof > 0, "dof must be greater than zero."
+    if dof is None or dof <= 0:
+        raise ValueError("dof must be greater than zero.")
 
     nr = max(int(npop * pp), 2)  # number of reproduction
     nm = int(npop * pm)  # number of mutation children
