@@ -1,12 +1,13 @@
 from collections.abc import Callable, Sequence
 from copy import deepcopy
-from random import choice, random, sample, uniform
+from random import Random
 
 
 def _generate_new_position(
     x0: Sequence[float] | None = None,
     dof: int | None = None,
     bounds: Sequence[tuple[float, float]] | None = None,
+    rng: Random | None = None,
 ) -> list[float]:
     """GENERATE NEW POSITION
 
@@ -60,20 +61,23 @@ def _generate_new_position(
     3) x0
     4) dof
     """
+    if rng is None:
+        rng = Random()
+
     if x0 and bounds:
         return [
-            min(max(uniform(-1, 1) + x0[i], bounds[i][0]), bounds[i][1])
+            min(max(rng.uniform(-1, 1) + x0[i], bounds[i][0]), bounds[i][1])
             for i in range(len(x0))
         ]
 
     if bounds:
-        return [uniform(bounds[i][0], bounds[i][1]) for i in range(len(bounds))]
+        return [rng.uniform(bounds[i][0], bounds[i][1]) for i in range(len(bounds))]
 
     if x0:
-        return [x_i + uniform(-1, 1) for x_i in x0]
+        return [x_i + rng.uniform(-1, 1) for x_i in x0]
 
     if dof:
-        return [uniform(-1, 1) for _ in range(dof)]
+        return [rng.uniform(-1, 1) for _ in range(dof)]
 
     raise ValueError("Must specify at least one of the following: x0, dof, or bounds")
 
@@ -91,6 +95,7 @@ def minimize(
     maxiter: int = 50,
     tol: float = 0.0,
     patience: int | None = None,
+    seed: int | None = None,
 ) -> tuple[float, list[float]]:
     """
     Parameters
@@ -149,6 +154,8 @@ def minimize(
             raise TypeError("parameter: patience -> must be of type: int")
         if patience <= 0:
             raise ValueError("patience must be greater than zero.")
+    if seed is not None and (not isinstance(seed, int) or isinstance(seed, bool)):
+        raise TypeError("parameter: seed -> must be of type: int")
 
     # check bounds specification if necessary
     if bounds:
@@ -171,12 +178,13 @@ def minimize(
     if dof is None or dof <= 0:
         raise ValueError("dof must be greater than zero.")
 
+    rng = Random(seed)
     nr = max(int(npop * pp), 2)  # number of reproduction
     nm = int(npop * pm)  # number of mutation children
     spacer = len(str(maxiter))  # for logging only
 
     # initialize and sort population
-    pop = [_generate_new_position(x0, dof, bounds) for _ in range(npop)]
+    pop = [_generate_new_position(x0, dof, bounds, rng=rng) for _ in range(npop)]
     pop.sort(key=func)
     gbest: list[float] = pop[0].copy()
     fbest: float = func(gbest)
@@ -192,7 +200,7 @@ def minimize(
         # procreation and cannibalism
         for _ in range(nr):
             # 1. pick two distinct parents from pop1 (already sorted by fitness)
-            i1, i2 = sample(range(len(pop1)), 2)
+            i1, i2 = rng.sample(range(len(pop1)), 2)
             p1, p2 = pop1[i1], pop1[i2]
 
             # 2. cannibalism: fitter parent (smaller index) is mother, father discarded
@@ -201,7 +209,7 @@ def minimize(
             # 3. procreation: generate offspring using equation (1)
             children: list[list[float]] = []
             for _ in range(max(dof // 2, 1)):
-                alpha = [random() for _ in range(dof)]
+                alpha = [rng.random() for _ in range(dof)]
                 c1 = [
                     (a * v1) + ((1.0 - a) * v2)
                     for a, v1, v2 in zip(alpha, p1, p2, strict=True)
@@ -224,17 +232,17 @@ def minimize(
         # mutation
         for _ in range(nm):
             # pick a random solution from pop1 and copy it
-            m = choice(pop1).copy()
+            m = rng.choice(pop1).copy()
 
             # pick two distinct chromosome positions and swap them (or perturb in 1D)
             if dof >= 2:
-                cp1, cp2 = sample(range(dof), 2)
+                cp1, cp2 = rng.sample(range(dof), 2)
                 m[cp1], m[cp2] = m[cp2], m[cp1]
                 if bounds:
                     m[cp1] = min(max(m[cp1], bounds[cp1][0]), bounds[cp1][1])
                     m[cp2] = min(max(m[cp2], bounds[cp2][0]), bounds[cp2][1])
             else:
-                m = _generate_new_position(x0=m, dof=dof, bounds=bounds)
+                m = _generate_new_position(x0=m, dof=dof, bounds=bounds, rng=rng)
 
             # persist
             pop3.append(m)
@@ -242,7 +250,7 @@ def minimize(
         # assemble final population
         pop2.extend(pop3)
         while len(pop2) < npop:
-            pop2.append(_generate_new_position(x0, dof, bounds))
+            pop2.append(_generate_new_position(x0, dof, bounds, rng=rng))
         pop = sorted(pop2, key=func)[:npop]
 
         # update global best and stagnation counter
