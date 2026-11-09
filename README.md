@@ -1,7 +1,7 @@
 # Black Widow Optimization
 
-[![gh-actions-ci](https://img.shields.io/github/workflow/status/nathanrooy/bwo/CI?style=flat-square)](https://github.com/nathanrooy/bwo/actions?query=workflow%3Aci)
-[![GitHub license](https://img.shields.io/github/license/nathanrooy/bwo?style=flat-square)](https://github.com/nathanrooy/bwo/blob/master/LICENSE)
+[![gh-actions-ci](https://img.shields.io/github/actions/workflow/status/nathanrooy/bwo/ci.yml?branch=main&style=flat-square)](https://github.com/nathanrooy/bwo/actions/workflows/ci.yml)
+[![GitHub license](https://img.shields.io/github/license/nathanrooy/bwo?style=flat-square)](https://github.com/nathanrooy/bwo/blob/main/LICENSE)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/bwo.svg?style=flat-square)](https://pypi.org/pypi/bwo/)
 [![PyPi Version](https://img.shields.io/pypi/v/bwo.svg?style=flat-square)](https://pypi.org/project/bwo)
 [![codecov](https://img.shields.io/codecov/c/github/nathanrooy/bwo.svg?style=flat-square)](https://codecov.io/gh/nathanrooy/bwo)
