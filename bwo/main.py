@@ -215,6 +215,9 @@ def minimize(
             if dof >= 2:
                 cp1, cp2 = sample(range(dof), 2)
                 m[cp1], m[cp2] = m[cp2], m[cp1]
+                if bounds:
+                    m[cp1] = min(max(m[cp1], bounds[cp1][0]), bounds[cp1][1])
+                    m[cp2] = min(max(m[cp2], bounds[cp2][0]), bounds[cp2][1])
             else:
                 m = _generate_new_position(x0=m, dof=dof, bounds=bounds)
 
@@ -223,7 +226,9 @@ def minimize(
 
         # assemble final population
         pop2.extend(pop3)
-        pop = deepcopy(pop2)
+        pop = sorted(pop2, key=func)[:npop]
+        while len(pop) < npop:
+            pop.append(_generate_new_position(x0, dof, bounds))
 
     # return global best position and func value at global best position
     return func(gbest), gbest
