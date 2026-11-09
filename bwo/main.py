@@ -1,9 +1,6 @@
-import sys
 from collections.abc import Callable, Sequence
 from copy import deepcopy
 from random import choice, random, sample, uniform
-
-sys.tracebacklimit = 0
 
 
 def _generate_new_position(
@@ -92,6 +89,8 @@ def minimize(
     npop: int = 10,
     disp: bool = False,
     maxiter: int = 50,
+    tol: float = 0.0,
+    patience: int | None = None,
 ) -> tuple[float, list[float]]:
     """
     Parameters
@@ -143,6 +142,13 @@ def minimize(
         raise ValueError('cannibalism rate "cr" must be: 0 <= cr <= 1')
     if not (0 <= pm <= 1):
         raise ValueError('mutation rate "pm" must be: 0 <= pm <= 1')
+    if not isinstance(tol, int | float) or isinstance(tol, bool) or tol < 0:
+        raise ValueError("tol must be a non-negative number.")
+    if patience is not None:
+        if not isinstance(patience, int) or isinstance(patience, bool):
+            raise TypeError("parameter: patience -> must be of type: int")
+        if patience <= 0:
+            raise ValueError("patience must be greater than zero.")
 
     # check bounds specification if necessary
     if bounds:
@@ -174,6 +180,7 @@ def minimize(
     pop.sort(key=func)
     gbest: list[float] = pop[0].copy()
     fbest: float = func(gbest)
+    stalled_iters = 0
 
     # main loop
     for epoch in range(maxiter):
@@ -238,8 +245,13 @@ def minimize(
             pop2.append(_generate_new_position(x0, dof, bounds))
         pop = sorted(pop2, key=func)[:npop]
 
-        # update global best
+        # update global best and stagnation counter
         f_curr = func(pop[0])
+        if fbest - f_curr > tol:
+            stalled_iters = 0
+        else:
+            stalled_iters += 1
+
         if f_curr <= fbest:
             fbest = f_curr
             gbest = pop[0].copy()
@@ -247,6 +259,9 @@ def minimize(
         # print something useful
         if disp:
             print(f"> ITER: {epoch + 1:>{spacer}} | GBEST: {fbest:0.6f}")
+
+        if patience is not None and stalled_iters >= patience:
+            break
 
     # return global best func value and position
     return fbest, gbest
