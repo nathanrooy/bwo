@@ -28,7 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install ruff pytest coverage
+        python -m pip install ruff mypy pytest coverage
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
     - name: Test with unittest
@@ -48,9 +48,8 @@ jobs:
         files: ./coverage.xml
         fail_ci_if_error: false
 
-    - name: Lint with ruff
+    - name: Lint and type-check
       run: |
-        # stop the build if there are Python syntax errors or undefined names
-        ruff check . --select=E9,F63,F7,F82
-        # exit-zero treats all errors as warnings until codebase lint cleanup
-        ruff check . --exit-zero
+        ruff check .
+        ruff format --check .
+        mypy bwo tests

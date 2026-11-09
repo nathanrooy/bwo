@@ -1,15 +1,17 @@
-from random import uniform
-from random import choice
-from random import random
-from random import randint
-from copy import deepcopy
-
 import sys
+from collections.abc import Callable, Sequence
+from copy import deepcopy
+from random import choice, randint, random, uniform
+
 sys.tracebacklimit = 0
 
 
-def _generate_new_position(x0: list = None, dof: int = None, bounds: list = None) -> list:
-    '''GENERATE NEW POSITION
+def _generate_new_position(
+    x0: Sequence[float] | None = None,
+    dof: int | None = None,
+    bounds: Sequence[tuple[float, float]] | None = None,
+) -> list[float]:
+    """GENERATE NEW POSITION
 
     Parameters
     ----------
@@ -26,7 +28,7 @@ def _generate_new_position(x0: list = None, dof: int = None, bounds: list = None
     There are several ways in which an initial position can be generated.
     Outlined below are all possible scenarios and outputs.
 
-    nomenclature: 
+    nomenclature:
         "dof" = "degrees of freedom" = "dimensions" = "d"
         p = new initial position vector of length d
 
@@ -48,7 +50,7 @@ def _generate_new_position(x0: list = None, dof: int = None, bounds: list = None
         this situation wll defer to the case above "just bounds"
 
     x0 + bounds:
-        for each position i in x0: 
+        for each position i in x0:
             p[i] = x0[i] + random value in [-1, 1] constrained by bounds[i].min
             and bounds[i].max
 
@@ -60,11 +62,13 @@ def _generate_new_position(x0: list = None, dof: int = None, bounds: list = None
     2) bounds
     3) x0
     4) dof
-    '''
-
+    """
     if x0 and bounds:
-        return [min(max(uniform(-1,1) + x0[i], bounds[i][0]), bounds[i][1]) for i in range(len(x0))]
-        
+        return [
+            min(max(uniform(-1, 1) + x0[i], bounds[i][0]), bounds[i][1])
+            for i in range(len(x0))
+        ]
+
     if bounds:
         return [uniform(bounds[i][0], bounds[i][1]) for i in range(len(bounds))]
 
@@ -72,20 +76,32 @@ def _generate_new_position(x0: list = None, dof: int = None, bounds: list = None
         return [x_i + uniform(-1, 1) for x_i in x0]
 
     if dof:
-        return [uniform(-1, 1) for _ in range(0, dof)]
+        return [uniform(-1, 1) for _ in range(dof)]
+
+    raise ValueError("Must specify at least one of the following: x0, dof, or bounds")
 
 
-def minimize(func, x0=None, dof=None, bounds=None, pp=0.6, cr=0.44, pm=0.4,
-             npop=10, disp=False, maxiter=50):
-    '''
+def minimize(
+    func: Callable[[list[float]], float],
+    x0: list[float] | None = None,
+    dof: int | None = None,
+    bounds: list[tuple[float, float]] | None = None,
+    pp: float = 0.6,
+    cr: float = 0.44,
+    pm: float = 0.4,
+    npop: int = 10,
+    disp: bool = False,
+    maxiter: int = 50,
+) -> tuple[float, list[float]]:
+    """
     Parameters
     ----------
     x0 : list
-    	initial guess
+        initial guess
     pp : float
-    	procreating percentage
+        procreating percentage
     cr : float
-    	cannibalism rate. A cr of 1 results in all children surviving. A cr of 0
+        cannibalism rate. A cr of 1 results in all children surviving. A cr of 0
         results in no children surviving
     pm : float
         mutation rate
@@ -97,96 +113,114 @@ def minimize(func, x0=None, dof=None, bounds=None, pp=0.6, cr=0.44, pm=0.4,
 
     References
     ----------
-    '''
-
+    """
     # do some basic checks before going any further
-    assert type(disp) == bool, 'parameter: disp -> must be of type: bool'
-    assert type(npop) == int, 'parameter: npop -> must be of type: int'
-    assert type(maxiter) == int, 'parameter: maxiter -> must be of type int'
-    if x0 is not None: assert type(x0) == list, 'x0 must be of type: list'
-    if dof is not None: assert type(dof) == int, 'parameter: dof -> must be of type: int'
-    if bounds is not None: assert type(bounds) == list, 'parameter: bounds -> must be of type list'
-    assert x0 is not None or dof is not None or bounds is not None, 'must specify at least one of the following: x0, dof, or bounds'
-    if x0 and bounds: assert len(bounds) == len(x0), 'x0 and bounds must have same number of elements'
-    assert pp > 0 and pp <= 1, 'procreating percentage "pp" must be: 0 < pp <= 1'
-    assert cr >= 0 and cr <= 1, 'cannibalism rate "cr" must be: 0 < cr <= 1'
-    assert pm >= 0 and pm <= 1, 'mutation rate "pm" must be: 0 < pm <= 1'
-    assert maxiter > 0, 'maxiter must be greater than zero.'
+    assert isinstance(disp, bool), "parameter: disp -> must be of type: bool"
+    assert isinstance(npop, int), "parameter: npop -> must be of type: int"
+    assert isinstance(maxiter, int), "parameter: maxiter -> must be of type int"
+    if x0 is not None:
+        assert isinstance(x0, list), "x0 must be of type: list"
+    if dof is not None:
+        assert isinstance(dof, int), "parameter: dof -> must be of type: int"
+    if bounds is not None:
+        assert isinstance(bounds, list), "parameter: bounds -> must be of type list"
+    assert x0 is not None or dof is not None or bounds is not None, (
+        "must specify at least one of the following: x0, dof, or bounds"
+    )
+    if x0 and bounds:
+        assert len(bounds) == len(x0), "x0 and bounds must have same number of elements"
+    assert 0 < pp <= 1, 'procreating percentage "pp" must be: 0 < pp <= 1'
+    assert 0 <= cr <= 1, 'cannibalism rate "cr" must be: 0 < cr <= 1'
+    assert 0 <= pm <= 1, 'mutation rate "pm" must be: 0 < pm <= 1'
+    assert maxiter > 0, "maxiter must be greater than zero."
 
     # check bounds specification if necessary
     if bounds:
-        assert type(bounds) == list, 'bounds must be of type: list'
+        assert isinstance(bounds, list), "bounds must be of type: list"
         for b in bounds:
-            assert type(b) == tuple, 'element in bounds is not of type: tuple. ever every element must be a tuple as specified (v_min, v_max)'
-            assert b[0] < b[1], 'element in bounds specified incorrectly. must be (xi_min, xi_max)'
+            assert isinstance(b, tuple), (
+                "element in bounds is not of type: tuple. "
+                "every element must be a tuple as specified (v_min, v_max)"
+            )
+            assert b[0] < b[1], (
+                "element in bounds specified incorrectly. must be (xi_min, xi_max)"
+            )
 
     # constants
-    if x0 is not None: dof = len(x0)
-    elif bounds is not None: dof = len(bounds)
+    if x0 is not None:
+        dof = len(x0)
+    elif bounds is not None:
+        dof = len(bounds)
+    assert dof is not None
 
-    nr = int(npop * pp)         # number of reproduction
-    nm = int(npop * pm)         # number of mutation children
-    spacer = len(str(npop))     # for logging only
+    nr = int(npop * pp)  # number of reproduction
+    nm = int(npop * pm)  # number of mutation children
+    spacer = len(str(npop))  # for logging only
 
     # initialize population
-    pop = [_generate_new_position(x0, dof, bounds) for _ in range(0, npop)]
-    
-    # main loop
-    hist = []
-    for epoch in range(0, maxiter):
+    pop = [_generate_new_position(x0, dof, bounds) for _ in range(npop)]
+    gbest: list[float] = pop[0]
 
-		# initialize epoch
+    # main loop
+    for epoch in range(maxiter):
+        # initialize epoch
         pop = sorted(pop, key=lambda x: func(x), reverse=False)
         pop1 = deepcopy(pop[:nr])
-        pop2 = []
-        pop3 = []
+        pop2: list[list[float]] = []
+        pop3: list[list[float]] = []
         gbest = pop[0]
-        
+
         # print something useful
-        if disp: print(f'> ITER: {epoch+1:>{spacer}} | GBEST: {func(gbest):0.6f}')
+        if disp:
+            print(f"> ITER: {epoch + 1:>{spacer}} | GBEST: {func(gbest):0.6f}")
 
         # procreation and cannibalism
-        for i in range(0, nr):
-
+        for _ in range(nr):
             # randomly pick two parents
-            i1, i2 = randint(0, len(pop1)-1), randint(0, len(pop1)-1)
+            i1, i2 = randint(0, len(pop1) - 1), randint(0, len(pop1) - 1)
             p1, p2 = pop1[i1], pop1[i2]
 
             # crossover
-            children = []
-            for j in range(0, int(dof/2)):
-
+            children: list[list[float]] = []
+            for _ in range(int(dof / 2)):
                 # generate two new children using equation (1)
                 alpha = random()
-                c1 = [(alpha * v1) + ((1 - alpha)*v2) for v1, v2 in zip(p1, p2)]
-                c2 = [(alpha * v2) + ((1 - alpha)*v1) for v1, v2 in zip(p1, p2)]
+                c1 = [
+                    (alpha * v1) + ((1 - alpha) * v2)
+                    for v1, v2 in zip(p1, p2, strict=True)
+                ]
+                c2 = [
+                    (alpha * v2) + ((1 - alpha) * v1)
+                    for v1, v2 in zip(p1, p2, strict=True)
+                ]
 
                 # persist new children to temp population
                 children.append(c1)
                 children.append(c2)
 
-            # cannibalism - destroy male; since female black widow spiders are 
+            # cannibalism - destroy male; since female black widow spiders are
             # larger and often end up killing the male during mating, we'll
-            # assume that the fitter partent is the female. thus, we'll delete 
+            # assume that the fitter partent is the female. thus, we'll delete
             # the weaker parent.
-            if func(p1) > func(p2): pop1.pop(i1)
-            else: pop1.pop(i2)
+            if func(p1) > func(p2):
+                pop1.pop(i1)
+            else:
+                pop1.pop(i2)
 
             # cannibalism - destroy some children
             children = sorted(children, key=lambda x: func(x), reverse=False)
-            children = children[:max(int(len(children) * cr), 1)]
+            children = children[: max(int(len(children) * cr), 1)]
 
             # add surviving children to pop2
             pop2.extend(children)
 
         # mutation
-        for i in range(0, nm):
-
+        for _ in range(nm):
             # pick a random child
             m = choice(pop2)
 
             # pick two random chromosome positions
-            cp1, cp2 = randint(0, dof-1), randint(0, dof-1)
+            cp1, cp2 = randint(0, dof - 1), randint(0, dof - 1)
 
             # swap chromosomes
             m[cp1], m[cp2] = m[cp2], m[cp1]
