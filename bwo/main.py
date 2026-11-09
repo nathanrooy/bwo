@@ -1,7 +1,7 @@
 import sys
 from collections.abc import Callable, Sequence
 from copy import deepcopy
-from random import choice, randint, random, uniform
+from random import choice, randint, random, sample, uniform
 
 sys.tracebacklimit = 0
 
@@ -153,7 +153,7 @@ def minimize(
         dof = len(bounds)
     assert dof is not None
 
-    nr = int(npop * pp)  # number of reproduction
+    nr = max(int(npop * pp), 2)  # number of reproduction
     nm = int(npop * pm)  # number of mutation children
     spacer = len(str(npop))  # for logging only
 
@@ -176,43 +176,34 @@ def minimize(
 
         # procreation and cannibalism
         for _ in range(nr):
-            # randomly pick two parents
-            i1, i2 = randint(0, len(pop1) - 1), randint(0, len(pop1) - 1)
-            p1, p2 = pop1[i1], pop1[i2]
+            # 1. pick two distinct parents from pop1
+            p1, p2 = sample(pop1, 2)
 
-            # crossover
+            # 2. cannibalism: fitter parent is mother, weaker (father) discarded
+            mother = p1 if func(p1) <= func(p2) else p2
+
+            # 3. procreation: generate offspring using equation (1)
             children: list[list[float]] = []
-            for _ in range(int(dof / 2)):
-                # generate two new children using equation (1)
-                alpha = random()
+            for _ in range(max(dof // 2, 1)):
+                alpha = [random() for _ in range(dof)]
                 c1 = [
-                    (alpha * v1) + ((1 - alpha) * v2)
-                    for v1, v2 in zip(p1, p2, strict=True)
+                    (a * v1) + ((1.0 - a) * v2)
+                    for a, v1, v2 in zip(alpha, p1, p2, strict=True)
                 ]
                 c2 = [
-                    (alpha * v2) + ((1 - alpha) * v1)
-                    for v1, v2 in zip(p1, p2, strict=True)
+                    (a * v2) + ((1.0 - a) * v1)
+                    for a, v1, v2 in zip(alpha, p1, p2, strict=True)
                 ]
-
-                # persist new children to temp population
                 children.append(c1)
                 children.append(c2)
 
-            # cannibalism - destroy male; since female black widow spiders are
-            # larger and often end up killing the male during mating, we'll
-            # assume that the fitter partent is the female. thus, we'll delete
-            # the weaker parent.
-            if func(p1) > func(p2):
-                pop1.pop(i1)
-            else:
-                pop1.pop(i2)
+            # 4. sibling cannibalism + matriphagy: combine mother and children,
+            # sort by fitness, and keep top survivors
+            family = [deepcopy(mother), *children]
+            family.sort(key=func)
+            n_survivors = max(int(len(family) * cr), 1)
 
-            # cannibalism - destroy some children
-            children = sorted(children, key=lambda x: func(x), reverse=False)
-            children = children[: max(int(len(children) * cr), 1)]
-
-            # add surviving children to pop2
-            pop2.extend(children)
+            pop2.extend(family[:n_survivors])
 
         # mutation
         for _ in range(nm):
