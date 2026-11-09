@@ -70,17 +70,21 @@ Which should yield something like the following:
 ```
 
 ### Options
-<b>minimize</b>(func, x0=None, dof=None, bounds=None, pp=0.6, cr=0.44, pm=0.4, npop=10, disp=False, maxiter=50)
+<b>minimize</b>(func, x0=None, dof=None, bounds=None, pp=0.6, cr=0.44, pm=0.4, npop=10, disp=False, maxiter=50, tol=0.0, patience=None, seed=None)
 
 - `func` (callable) : The objective function to be minimized.
 - `x0` (list) : Initial guess (optional).
 - `dof` (int) : degrees of freedom (optional)
 - `bounds`(list of tuples) : boundary constraints as specified as a list of (xi_min, xi_max) tuples.
-- `pp` (float) : procreating percentage [0, 1].
+- `pp` (float) : procreating percentage (0, 1].
 - `cr` (float) : cannibalism rate [0, 1]. 
 - `pm` (float) : mutation rate [0, 1].
-- `maxiter` (int) : maximum number of iterations.
+- `npop` (int) : population size.
 - `disp` (bool) : output intermediate results at each iteration.
+- `maxiter` (int) : maximum number of iterations.
+- `tol` (float) : minimum improvement in best fitness required to reset early-stopping counter.
+- `patience` (int, optional) : number of consecutive iterations without improvement > `tol` before stopping early.
+- `seed` (int, optional) : random seed for reproducible optimization runs.
 
 ### References
 
@@ -89,7 +93,7 @@ Which should yield something like the following:
     year = {2019},
     month = {10},
     pages = {103249},
-    title = {Black Widow Optimization Algorithm: A novel meta-heuristic approach for solving engineering optimization problems ✩},
+    title = {Black Widow Optimization Algorithm: A novel meta-heuristic approach for solving engineering optimization problems},
     volume = {87},
     journal = {Engineering Applications of Artificial Intelligence},
     doi = {10.1016/j.engappai.2019.103249}
