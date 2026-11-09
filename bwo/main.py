@@ -156,32 +156,29 @@ def minimize(
 
     nr = max(int(npop * pp), 2)  # number of reproduction
     nm = int(npop * pm)  # number of mutation children
-    spacer = len(str(npop))  # for logging only
+    spacer = len(str(maxiter))  # for logging only
 
-    # initialize population
+    # initialize and sort population
     pop = [_generate_new_position(x0, dof, bounds) for _ in range(npop)]
-    gbest: list[float] = pop[0]
+    pop.sort(key=func)
+    gbest: list[float] = pop[0].copy()
+    fbest: float = func(gbest)
 
     # main loop
     for epoch in range(maxiter):
         # initialize epoch
-        pop = sorted(pop, key=lambda x: func(x), reverse=False)
         pop1 = deepcopy(pop[:nr])
         pop2: list[list[float]] = []
         pop3: list[list[float]] = []
-        gbest = pop[0]
-
-        # print something useful
-        if disp:
-            print(f"> ITER: {epoch + 1:>{spacer}} | GBEST: {func(gbest):0.6f}")
 
         # procreation and cannibalism
         for _ in range(nr):
-            # 1. pick two distinct parents from pop1
-            p1, p2 = sample(pop1, 2)
+            # 1. pick two distinct parents from pop1 (already sorted by fitness)
+            i1, i2 = sample(range(len(pop1)), 2)
+            p1, p2 = pop1[i1], pop1[i2]
 
-            # 2. cannibalism: fitter parent is mother, weaker (father) discarded
-            mother = p1 if func(p1) <= func(p2) else p2
+            # 2. cannibalism: fitter parent (smaller index) is mother, father discarded
+            mother = p1 if i1 < i2 else p2
 
             # 3. procreation: generate offspring using equation (1)
             children: list[list[float]] = []
@@ -226,9 +223,19 @@ def minimize(
 
         # assemble final population
         pop2.extend(pop3)
+        while len(pop2) < npop:
+            pop2.append(_generate_new_position(x0, dof, bounds))
         pop = sorted(pop2, key=func)[:npop]
-        while len(pop) < npop:
-            pop.append(_generate_new_position(x0, dof, bounds))
 
-    # return global best position and func value at global best position
-    return func(gbest), gbest
+        # update global best
+        f_curr = func(pop[0])
+        if f_curr <= fbest:
+            fbest = f_curr
+            gbest = pop[0].copy()
+
+        # print something useful
+        if disp:
+            print(f"> ITER: {epoch + 1:>{spacer}} | GBEST: {fbest:0.6f}")
+
+    # return global best func value and position
+    return fbest, gbest
