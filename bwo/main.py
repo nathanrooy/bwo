@@ -152,6 +152,7 @@ def minimize(
     elif bounds is not None:
         dof = len(bounds)
     assert dof is not None
+    assert dof > 0, "dof must be greater than zero."
 
     nr = max(int(npop * pp), 2)  # number of reproduction
     nm = int(npop * pm)  # number of mutation children
@@ -210,10 +211,12 @@ def minimize(
             # pick a random solution from pop1 and copy it
             m = choice(pop1).copy()
 
-            # pick two distinct chromosome positions and swap them
+            # pick two distinct chromosome positions and swap them (or perturb in 1D)
             if dof >= 2:
                 cp1, cp2 = sample(range(dof), 2)
                 m[cp1], m[cp2] = m[cp2], m[cp1]
+            else:
+                m = _generate_new_position(x0=m, dof=dof, bounds=bounds)
 
             # persist
             pop3.append(m)
