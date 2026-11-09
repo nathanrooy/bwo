@@ -1,7 +1,7 @@
 import sys
 from collections.abc import Callable, Sequence
 from copy import deepcopy
-from random import choice, randint, random, sample, uniform
+from random import choice, random, sample, uniform
 
 sys.tracebacklimit = 0
 
@@ -207,14 +207,13 @@ def minimize(
 
         # mutation
         for _ in range(nm):
-            # pick a random child
-            m = choice(pop2)
+            # pick a random solution from pop1 and copy it
+            m = choice(pop1).copy()
 
-            # pick two random chromosome positions
-            cp1, cp2 = randint(0, dof - 1), randint(0, dof - 1)
-
-            # swap chromosomes
-            m[cp1], m[cp2] = m[cp2], m[cp1]
+            # pick two distinct chromosome positions and swap them
+            if dof >= 2:
+                cp1, cp2 = sample(range(dof), 2)
+                m[cp1], m[cp2] = m[cp2], m[cp1]
 
             # persist
             pop3.append(m)
